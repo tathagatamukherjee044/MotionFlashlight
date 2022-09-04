@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -21,7 +23,11 @@ public class MainActivity extends AppCompatActivity {
 
     Button flashButton, blinkButton;
     CameraManager cameraManager;
+    SeekBar seekBar;
+    TextView textView;
     String cameraID;
+
+    long delay=1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         flashButton=findViewById(R.id.flashButton);
         blinkButton = findViewById(R.id.blinkButton);
+        seekBar = findViewById(R.id.seekBarDelay);
+        textView = findViewById(R.id.textViewDelay);
         startService(new Intent(MainActivity.this,ShakeDetection.class));
         cameraManager= (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
@@ -45,11 +53,33 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 isBlink = !isBlink;
+                if (isBlink) blinkButton.setText("BLink Off");
+                else  blinkButton.setText("Blink On");
                 try {
                     blinkOn();
                 } catch (CameraAccessException e) {
                     e.printStackTrace();
                 }
+            }
+        });
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                delay=i;
+                delay*=5;
+                if(delay<20) delay=20;
+                textView.setText(String.valueOf(delay));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
 
@@ -86,12 +116,12 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        },1000);
+        },delay);
     }
 
     public void blinkOff() throws  CameraAccessException {
 
-        if(!isBlink) return;
+        //if(!isBlink) return;
 
         Timer pulse = new Timer();
         pulse.schedule(new TimerTask() {
@@ -104,6 +134,12 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        },1000);
+        },delay);
+    }
+
+    public void  stopBlinkFlashOn() throws CameraAccessException {
+        isBlink=false;
+        blinkOff();
+
     }
 }
